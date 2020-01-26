@@ -10,12 +10,12 @@ RUN bundle install
 COPY . .
 # Run the apidoc to make the api documentation
 # replace the env file
-RUN mv .env.production .env
+RUN mv .env.sample .env
 # Expose port 5000 to
 EXPOSE 5000
 # Set env vars
-ENV RAILS_ENV production
+ENV RAILS_ENV development
 # Install foreman
 RUN gem install foreman
-# Run the app
-CMD ["bash", "-c", "rake db:migrate && foreman start"]
+# Run the app, adding steps for creating populating, and seeding db.
+CMD ["bash", "-c", "rake db:create && rake db:migrate && rake db:seed && foreman start"]

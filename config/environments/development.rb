@@ -33,6 +33,9 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  #ADDING THIS OTHERWISE I GET BLOCKED HOST ERROR
+  config.hosts = nil
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 
