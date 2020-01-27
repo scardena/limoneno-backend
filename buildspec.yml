@@ -1,0 +1,64 @@
+version: 0.2
+phases:
+  install:
+    #as of 2019? all runtimes are included in the ubuntu image, but need to be set up here, no more aws/codebuild/docker runtime :(
+    runtime-versions:
+      docker: 18
+    commands:
+      - echo "installing packages..(nothing for now)"
+      #- apt-get update -y
+      #- apt-get install make -y
+      #- apt-get install gcc -y
+      #- apt-get install autotools-dev -y
+   
+
+      #- wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-1.5.tar.gz
+      #- tar -xvf jq-1.5.tar.gz
+      #- cd jq-1.5/
+      #- ./configure && make && sudo make install
+
+      #- cd ..
+      #- apt-get install -y jq
+      #
+      #
+      - pip install awsebcli --upgrade
+      - eb init --platform "docker" --region $AWS_DEFAULT_REGION backend
+  #The building proccess is moved to pre_build stage, as if the build fails, it will still proceed to the post_build stage, hence it may upload broken images to ECR.
+  pre_build: 
+    commands:
+      - echo Logging to ECR...
+      #Default region is passed in CodeBuild as environment variable AWS_DEFAULT_REGION
+      - $(aws ecr get-login --no-include-email)
+      - echo Build started on $(date)
+      - echo Building docker image
+      - region="$AWS_DEFAULT_REGION"
+
+      - docker build -t limoneno-backend:latest .
+      #Need to figure out how to pass the tag as variable
+      - tagImageDate=$(echo p$(date +%Y)$(date +%m)$(date +%d)-$(date +%H)$(date +%M)$(date +%S))
+      #- tagImageCommit=$(aws codepipeline  get-pipeline-state --name limoneno-backend | jq '.stageStates[0].actionStates[0].currentRevision.revisionId' | tr -d '"')
+      - echo "image date creation :" "$tagImageDate"
+      - echo "region is :" "$region"
+      #- echo $tagImageCommit
+      - echo Pushing docker image to ECR
+
+
+      - docker tag limoneno-backend:latest 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageDate
+      #- docker tag limoneno-backend:latest 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageCommit
+      - docker push 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageDate
+      #- docker push 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageCommit
+
+      #updating the Dockerrun file to the built image
+      #- sed -i 's/ENVIRONMENT/'$region/ .ebextensions/awslogs.config
+
+  build:
+    commands:
+      - echo 'Build succeded!'
+  post_build:
+    commands:
+      - eb clone backend-blue -n backend-green
+      - eb swap backend-blue -n backend-green
+artifacts:
+  files:
+    - Dockerrun.aws.json
+    #- .ebextensions/*
