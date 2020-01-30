@@ -23,6 +23,7 @@ phases:
       #
       - pip install awsebcli --upgrade
       - eb init --platform "docker" --region $AWS_DEFAULT_REGION backend
+      - apt-get install stress -y
   #The building proccess is moved to pre_build stage, as if the build fails, it will still proceed to the post_build stage, hence it may upload broken images to ECR.
   pre_build: 
     commands:
@@ -44,7 +45,7 @@ phases:
 
 
       - docker tag limoneno-backend:latest 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageDate
-      #- docker tag limoneno-backend:latest 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageCommit
+      - docker tag limoneno-backend:latest 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:latest
       - docker push 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageDate
       #- docker push 008456815799.dkr.ecr.$region.amazonaws.com/limoneno-backend:$tagImageCommit
 
