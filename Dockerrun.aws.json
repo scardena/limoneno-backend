@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "600806953581.dkr.ecr.eu-west-2.amazonaws.com/limoneno-backend:latest",
+    "Name": "008456815799.dkr.ecr.us-east-1.amazonaws.com/limoneno-backend:latest",
     "Update": "true"
   },
   "Ports": [
